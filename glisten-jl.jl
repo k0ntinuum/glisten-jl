@@ -83,7 +83,8 @@ function demo()
     print_key(k)
     print(gray(155),"r = ",r,"\n\n")
     for i in 1:20
-        p = Random.randperm(n)
+        #p = Random.randperm(n)
+        p = rand(1:n,24)
         c = encrypt(p,k,r)
         d = decrypt(c,k,r)
         print(white(),"f( ", red(), str_from_vec(p),white()," ) = ")
@@ -93,7 +94,8 @@ function demo()
 end
 
 
-alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+alph = "O|@*="
 n = length(alph)
 k = key(n)
-r = 5
+r = 50
