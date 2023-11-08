@@ -2,28 +2,47 @@ using Random
 using Printf
 using LinearAlgebra
 
+function key(n)
+    copy(transpose(reduce(hcat, [Random.randperm(n) for i in 1:n])))
+end
 
-key(n) = copy(transpose(reduce(hcat, [Random.randperm(n) for i in 1:n])))
-
-str_from_vec(v)  = join(map(i -> alph[i:i], v))
 
 function print_key(k)
-	for i in 1:n print(join(map(i -> alph[i:i]*" ", k[i,:])),"\n") end
+    n = size(k)[begin]
+	for i in 1:n print(str_from_vec( k[i,:]," " ),"\n") end
 	print("\n")
 end
 
-str_from_vec(v,c)  = join(map(i -> alph[i+1:i+1]*c, v))
+function rgb(r,g,b)
+    "\e[38;2;$(r);$(g);$(b)m"
+end
 
-vec_from_str(s) = map(i -> findfirst(isequal(i),alph),collect(s))
+function red()
+    rgb(255,0,0)
+end
 
-rgb(r,g,b) =  "\e[38;2;$(r);$(g);$(b)m"
+function yellow()
+    rgb(255,255,0)
+end
 
-red() = rgb(255,0,0);
-yellow() = rgb(255,255,0);
-white() = rgb(255,255,255);
-gray(h) = rgb(h,h,h)
+function white()
+    rgb(255,255,255)
+end
+
+function gray(h)
+    rgb(h,h,h)
+end
+
+function str_from_vec(v,c)
+    #alph = "O|"
+    alph = "abcdefghijklmnopqrstuvwxyz"
+    join(map(i -> alph[i:i]*c, v))
+end
+
+
 
 function encode(p,q)
+    n = size(q)[begin]
     k = copy(q)
     c = Int64[]
     m = 1
@@ -36,6 +55,7 @@ function encode(p,q)
 end
 
 function decode(c,q)
+    n = size(q)[begin]
     k = copy(q)
     p = Int64[]
     m = 1
@@ -49,6 +69,7 @@ end
 
 function spin(q,r)
     k = copy(q)
+    n = size(q)[begin]
     for i in 1:r
         for j in 1:n
             k[j,:] = map(x -> mod1(x+k[j,j],n), k[j,:])
@@ -57,8 +78,9 @@ function spin(q,r)
     k
 end
 
-function encrypt(p, q, r)
-    for i in 1:r
+function encrypt(p, q)
+    n = size(q)[begin]
+    for i in 1:n
         k = spin(q,i)
         p = encode(p,k)
         p = reverse(p)
@@ -66,10 +88,10 @@ function encrypt(p, q, r)
     p
 end
 
-function decrypt(c, q, r)
-    for i in 1:r
-        k = spin(q,r + 1 - i)
-        #print(k,"\n")
+function decrypt(c, q)
+    n = size(q)[begin]
+    for i in 1:n
+        k = spin(q,n + 1 - i)
         c = reverse(c)
         c = decode(c,k)
     end
@@ -79,23 +101,17 @@ end
 
 
 function demo()
+    n = 26
+    k = key(n)
     print(white(),"k = \n", gray(155))
     print_key(k)
-    print(gray(155),"r = ",r,"\n\n")
     for i in 1:20
-        #p = Random.randperm(n)
-        p = rand(1:n,24)
-        c = encrypt(p,k,r)
-        d = decrypt(c,k,r)
-        print(white(),"f( ", red(), str_from_vec(p),white()," ) = ")
-        print(yellow(), str_from_vec(c),white(),"\n")
+        p = Random.randperm(n)
+        #p = rand(1:n,24)
+        c = encrypt(p,k)
+        d = decrypt(c,k)
+        print(white(),"f( ", red(), str_from_vec(p,""),white()," ) = ")
+        print(yellow(), str_from_vec(c,""),white(),"\n")
         if p != d @printf "ERROR\n\n" end
     end
 end
-
-
-#alph = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-alph = "O|@*="
-n = length(alph)
-k = key(n)
-r = 50
